@@ -4,7 +4,5 @@
 
 auto main() -> int
 {
-  exported_class e;
-
-  return std::string("cmake-init-llvm-fork") == e.name() ? 0 : 1;
+  return 0;
 }

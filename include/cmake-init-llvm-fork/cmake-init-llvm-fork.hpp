@@ -1,8 +1,13 @@
 #pragma once
 
-#include <string>
-
 #include "cmake-init-llvm-fork/cmake-init-llvm-fork_export.hpp"
+#include "llvm/ADT/MapVector.h"
+#include "llvm/IR/AbstractCallSite.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Pass.h"
+#include "llvm/Passes/PassPlugin.h"
+#include "llvm/Support/raw_ostream.h"
 
 /**
  * A note about the MSVC warning C4251:
@@ -46,25 +51,82 @@
  * they also solve some other problems that make them worth the time invested.
  */
 
-/**
- * @brief Reports the name of the library
- *
- * Please see the note above for considerations when creating shared libraries.
- */
-class CMAKE_INIT_LLVM_FORK_EXPORT exported_class
-{
-public:
-  /**
-   * @brief Initializes the name field to the name of the project
-   */
-  exported_class();
+//------------------------------------------------------------------------------
+// New PM interface
+//------------------------------------------------------------------------------
+using ResultStaticCC = llvm::MapVector<const llvm::Function*, unsigned>;
 
-  /**
-   * @brief Returns a non-owning pointer to the string stored in this class
-   */
-  auto name() const -> const char*;
+struct CMAKE_INIT_LLVM_FORK_EXPORT StaticCallCounter
+    : public llvm::AnalysisInfoMixin<StaticCallCounter>
+{
+  using Result = ResultStaticCC;
+  auto run(llvm::Module& M, llvm::ModuleAnalysisManager& /*unused*/) -> Result;
+  auto runOnModule(llvm::Module& M) -> Result;
+  // Part of the official API:
+  //  https://llvm.org/docs/WritingAnLLVMNewPMPass.html#required-passes
+  static auto isRequired() -> bool
+  {
+    return true;
+  }
 
 private:
-  CMAKE_INIT_LLVM_FORK_SUPPRESS_C4251
-  std::string m_name;
+  // A special type used by analysis passes to provide an address that
+  // identifies that particular analysis pass type.
+  static llvm::AnalysisKey Key;
+  friend struct llvm::AnalysisInfoMixin<StaticCallCounter>;
+};
+
+//------------------------------------------------------------------------------
+// New PM interface for the printer pass
+//------------------------------------------------------------------------------
+class CMAKE_INIT_LLVM_FORK_EXPORT StaticCallCounterPrinter
+    : public llvm::PassInfoMixin<StaticCallCounterPrinter>
+{
+public:
+  explicit StaticCallCounterPrinter(llvm::raw_ostream& OutS)
+      : OS(OutS)
+  {
+  }
+  auto run(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
+      -> llvm::PreservedAnalyses;
+  // Part of the official API:
+  //  https://llvm.org/docs/WritingAnLLVMNewPMPass.html#required-passes
+  static auto isRequired() -> bool
+  {
+    return true;
+  }
+
+private:
+  llvm::raw_ostream& OS;
+};
+
+CMAKE_INIT_LLVM_FORK_EXPORT auto getStaticCallCounterPluginInfo()
+    -> llvm::PassPluginLibraryInfo;
+
+extern "C" LLVM_ATTRIBUTE_WEAK CMAKE_INIT_LLVM_FORK_EXPORT auto
+llvmGetPassPluginInfo() -> llvm::PassPluginLibraryInfo
+{
+  return getStaticCallCounterPluginInfo();
+}
+
+//------------------------------------------------------------------------------
+// Legacy PM interface
+//------------------------------------------------------------------------------
+struct CMAKE_INIT_LLVM_FORK_EXPORT LegacyStaticCallCounter
+    : public llvm::ModulePass
+{
+  static char ID;
+  LegacyStaticCallCounter()
+      : llvm::ModulePass(ID)
+  {
+  }
+  auto runOnModule(llvm::Module& M) -> bool override;
+  // The print method must be implemented by Legacy analysis passes in order to
+  // print a human readable version of the analysis results:
+  //    http://llvm.org/docs/WritingAnLLVMPass.html#the-print-method
+  void print(llvm::raw_ostream& OutS,
+             llvm::Module const* /*unused*/) const override;
+
+  ResultStaticCC DirectCalls;
+  StaticCallCounter Impl;
 };

@@ -16,8 +16,13 @@ install(
     COMPONENT cmake-init-llvm-fork_Development
 )
 
+set(pass_libs)
+if (NOT WIN32)
+    set(pass_libs cmake-init-llvm-fork_cmake-init-llvm-forkPass)
+endif()
+
 install(
-    TARGETS cmake-init-llvm-fork_cmake-init-llvm-fork
+    TARGETS cmake-init-llvm-fork_cmake-init-llvm-fork ${pass_libs}
     EXPORT cmake-init-llvm-forkTargets
     RUNTIME #
     COMPONENT cmake-init-llvm-fork_Runtime
@@ -26,6 +31,8 @@ install(
     NAMELINK_COMPONENT cmake-init-llvm-fork_Development
     ARCHIVE #
     COMPONENT cmake-init-llvm-fork_Development
+    LIBRARY #
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     INCLUDES #
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
