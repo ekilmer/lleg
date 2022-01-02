@@ -6,8 +6,8 @@ config.llvm_tools_dir = "@LLVM_TOOLS_BINARY_DIR@"
 config.llvm_exe_ext = "@CMAKE_EXECUTABLE_SUFFIX@"
 config.llvm_shlib_ext = "@CMAKE_SHARED_LIBRARY_SUFFIX@"
 
-config.cmake_init_llvm_fork_tool_test_exe = "@tool_test_exe@"
-config.cmake_init_llvm_fork_pass_lib = "@pass_lib@"
+config.lleg_tool_test_exe = "@tool_test_exe@"
+config.lleg_pass_lib = "@pass_lib@"
 
 import lit.llvm
 # lit_config is a global instance of LitConfig

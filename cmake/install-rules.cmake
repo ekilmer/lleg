@@ -1,36 +1,36 @@
 if(PROJECT_IS_TOP_LEVEL)
-  set(CMAKE_INSTALL_INCLUDEDIR include/cmake-init-llvm-fork CACHE PATH "")
+  set(CMAKE_INSTALL_INCLUDEDIR include/lleg CACHE PATH "")
 endif()
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
 # find_package(<package>) call for consumers to find this project
-set(package cmake-init-llvm-fork)
+set(package lleg)
 
 install(
     DIRECTORY
     include/
     "${PROJECT_BINARY_DIR}/export/"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    COMPONENT cmake-init-llvm-fork_Development
+    COMPONENT lleg_Development
 )
 
 set(pass_libs)
 if (NOT WIN32)
-    set(pass_libs cmake-init-llvm-fork_cmake-init-llvm-forkPass)
+    set(pass_libs lleg_llegPass)
 endif()
 
 install(
-    TARGETS cmake-init-llvm-fork_cmake-init-llvm-fork ${pass_libs}
-    EXPORT cmake-init-llvm-forkTargets
+    TARGETS lleg_lleg ${pass_libs}
+    EXPORT llegTargets
     RUNTIME #
-    COMPONENT cmake-init-llvm-fork_Runtime
+    COMPONENT lleg_Runtime
     LIBRARY #
-    COMPONENT cmake-init-llvm-fork_Runtime
-    NAMELINK_COMPONENT cmake-init-llvm-fork_Development
+    COMPONENT lleg_Runtime
+    NAMELINK_COMPONENT lleg_Development
     ARCHIVE #
-    COMPONENT cmake-init-llvm-fork_Development
+    COMPONENT lleg_Development
     LIBRARY #
     DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     INCLUDES #
@@ -44,29 +44,29 @@ write_basic_package_version_file(
 
 # Allow package maintainers to freely override the path for the configs
 set(
-    cmake-init-llvm-fork_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DATADIR}/${package}"
+    lleg_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DATADIR}/${package}"
     CACHE PATH "CMake package config location relative to the install prefix"
 )
-mark_as_advanced(cmake-init-llvm-fork_INSTALL_CMAKEDIR)
+mark_as_advanced(lleg_INSTALL_CMAKEDIR)
 
 install(
     FILES cmake/install-config.cmake
-    DESTINATION "${cmake-init-llvm-fork_INSTALL_CMAKEDIR}"
+    DESTINATION "${lleg_INSTALL_CMAKEDIR}"
     RENAME "${package}Config.cmake"
-    COMPONENT cmake-init-llvm-fork_Development
+    COMPONENT lleg_Development
 )
 
 install(
     FILES "${PROJECT_BINARY_DIR}/${package}ConfigVersion.cmake"
-    DESTINATION "${cmake-init-llvm-fork_INSTALL_CMAKEDIR}"
-    COMPONENT cmake-init-llvm-fork_Development
+    DESTINATION "${lleg_INSTALL_CMAKEDIR}"
+    COMPONENT lleg_Development
 )
 
 install(
-    EXPORT cmake-init-llvm-forkTargets
-    NAMESPACE cmake-init-llvm-fork::
-    DESTINATION "${cmake-init-llvm-fork_INSTALL_CMAKEDIR}"
-    COMPONENT cmake-init-llvm-fork_Development
+    EXPORT llegTargets
+    NAMESPACE lleg::
+    DESTINATION "${lleg_INSTALL_CMAKEDIR}"
+    COMPONENT lleg_Development
 )
 
 if(PROJECT_IS_TOP_LEVEL)

@@ -1,4 +1,4 @@
-#include "cmake-init-llvm-fork/cmake-init-llvm-fork.hpp"
+#include "lleg/lleg.hpp"
 
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"

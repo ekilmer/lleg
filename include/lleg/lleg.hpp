@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cmake-init-llvm-fork/cmake-init-llvm-fork_export.hpp"
+#include "lleg/lleg_export.hpp"
 #include "llvm/ADT/MapVector.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Module.h"
@@ -56,7 +56,7 @@
 //------------------------------------------------------------------------------
 using ResultStaticCC = llvm::MapVector<const llvm::Function*, unsigned>;
 
-struct CMAKE_INIT_LLVM_FORK_EXPORT StaticCallCounter
+struct LLEG_EXPORT StaticCallCounter
     : public llvm::AnalysisInfoMixin<StaticCallCounter>
 {
   using Result = ResultStaticCC;
@@ -79,7 +79,7 @@ private:
 //------------------------------------------------------------------------------
 // New PM interface for the printer pass
 //------------------------------------------------------------------------------
-class CMAKE_INIT_LLVM_FORK_EXPORT StaticCallCounterPrinter
+class LLEG_EXPORT StaticCallCounterPrinter
     : public llvm::PassInfoMixin<StaticCallCounterPrinter>
 {
 public:
@@ -100,12 +100,12 @@ private:
   llvm::raw_ostream& OS;
 };
 
-CMAKE_INIT_LLVM_FORK_EXPORT auto getStaticCallCounterPluginInfo()
+LLEG_EXPORT auto getStaticCallCounterPluginInfo()
     -> llvm::PassPluginLibraryInfo;
 
 // Windows has no concept of weak symbols
 #ifndef _WIN32
-extern "C" LLVM_ATTRIBUTE_WEAK CMAKE_INIT_LLVM_FORK_EXPORT auto
+extern "C" LLVM_ATTRIBUTE_WEAK LLEG_EXPORT auto
 llvmGetPassPluginInfo() -> llvm::PassPluginLibraryInfo
 {
   return getStaticCallCounterPluginInfo();
@@ -115,7 +115,7 @@ llvmGetPassPluginInfo() -> llvm::PassPluginLibraryInfo
 //------------------------------------------------------------------------------
 // Legacy PM interface
 //------------------------------------------------------------------------------
-struct CMAKE_INIT_LLVM_FORK_EXPORT LegacyStaticCallCounter
+struct LLEG_EXPORT LegacyStaticCallCounter
     : public llvm::ModulePass
 {
   static char ID;

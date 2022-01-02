@@ -1,6 +1,6 @@
-# cmake-init-llvm-fork
+# lleg
 
-This is the cmake-init-llvm-fork project.
+This is the lleg project.
 
 # Building and installing
 

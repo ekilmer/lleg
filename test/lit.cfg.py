@@ -11,7 +11,7 @@ from lit.llvm.subst import ToolSubst
 
 # name: The name of this test suite.
 # (config is an instance of TestingConfig created when discovering tests)
-config.name = 'CMAKE_INIT_LLVM_FORK'
+config.name = 'LLEG'
 
 # testFormat: The test format to use to interpret tests.
 # As per shtest.py (my formatting):
@@ -64,5 +64,5 @@ config.substitutions.append(('%exeext', config.llvm_exe_ext))
 config.substitutions.append(('%shlibext', config.llvm_shlib_ext))
 
 # Tool/Library specific substitutions
-config.substitutions.append(('%tooltestexe', config.cmake_init_llvm_fork_tool_test_exe))
-config.substitutions.append(('%passlib', config.cmake_init_llvm_fork_pass_lib))
+config.substitutions.append(('%tooltestexe', config.lleg_tool_test_exe))
+config.substitutions.append(('%passlib', config.lleg_pass_lib))
