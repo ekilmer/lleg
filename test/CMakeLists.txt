@@ -7,7 +7,6 @@ include(../cmake/folders.cmake)
 include(../cmake/windows-set-path.cmake)
 
 if(PROJECT_IS_TOP_LEVEL)
-  include(GNUInstallDirs)
   find_package(lleg REQUIRED)
   enable_testing()
 endif()
@@ -27,12 +26,13 @@ target_compile_features(lleg_tool_test PRIVATE cxx_std_17)
 
 # Setup LLVM's own LIT testing
 find_package(LLVM 13 CONFIG REQUIRED)
-set(llvm_lit "${LLVM_DEFAULT_EXTERNAL_LIT}")
-if(EXISTS "${llvm_lit}")
+if(EXISTS "${LLVM_DEFAULT_EXTERNAL_LIT}")
   find_package(Python3 REQUIRED COMPONENTS Interpreter)
-  set(llvm_lit Python3::Interpreter "${llvm_lit}")
+  set(llvm_lit Python3::Interpreter "${LLVM_DEFAULT_EXTERNAL_LIT}")
+  message(STATUS "Using found lit: ${llvm_lit}")
 else()
   find_program(llvm_lit NAMES llvm-lit lit DOC "LLVM LIT testing tool")
+  message(STATUS "Using searched lit: ${llvm_lit}")
 endif()
 
 # Setup replacement variables
