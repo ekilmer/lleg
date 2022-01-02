@@ -1,5 +1,5 @@
 include(CMakeFindDependencyMacro)
-find_dependency(LLVM 14)
+find_dependency(LLVM 13)
 
 if(NOT "@BUILD_SHARED_LIBS@")
     # find_dependency(fmt)
