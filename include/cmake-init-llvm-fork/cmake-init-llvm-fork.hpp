@@ -103,11 +103,14 @@ private:
 CMAKE_INIT_LLVM_FORK_EXPORT auto getStaticCallCounterPluginInfo()
     -> llvm::PassPluginLibraryInfo;
 
+// Windows has no concept of weak symbols
+#ifndef _WIN32
 extern "C" LLVM_ATTRIBUTE_WEAK CMAKE_INIT_LLVM_FORK_EXPORT auto
 llvmGetPassPluginInfo() -> llvm::PassPluginLibraryInfo
 {
   return getStaticCallCounterPluginInfo();
 }
+#endif // _WIN32
 
 //------------------------------------------------------------------------------
 // Legacy PM interface

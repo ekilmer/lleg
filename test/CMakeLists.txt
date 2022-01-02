@@ -28,7 +28,10 @@ target_compile_features(cmake-init-llvm-fork_tool_test PRIVATE cxx_std_17)
 # Setup LLVM's own LIT testing
 find_package(LLVM 13 CONFIG REQUIRED)
 set(llvm_lit "${LLVM_DEFAULT_EXTERNAL_LIT}")
-if(NOT EXISTS "${llvm_lit}")
+if(EXISTS "${llvm_lit}")
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  set(llvm_lit Python3::Interpreter "${llvm_lit}")
+else()
   find_program(llvm_lit NAMES llvm-lit lit DOC "LLVM LIT testing tool")
 endif()
 
@@ -47,7 +50,7 @@ configure_file("${site_cfg_input}"
 )
 # Replace generator expressions
 file(GENERATE
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/lit.site.cfg.py"
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/lit.site.cfg.py"
   INPUT "${CMAKE_CURRENT_BINARY_DIR}/lit.site.cfg.py.in"
 )
 
@@ -56,7 +59,8 @@ file(GENERATE
 # LIT is already parallelized, so there could be resource contention.
 add_test(
   NAME cmake-init-llvm-fork_test-lit
-  COMMAND "${llvm_lit}" ${LLVM_LIT_ARGS} lit
+  COMMAND ${llvm_lit} ${LLVM_LIT_ARGS} lit
+  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
 )
 
 add_folders(Test)
