@@ -150,10 +150,18 @@ jobs:
 
     runs-on: ${{ matrix.os }}-latest
 
+    env:
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+
+    - name: Bootstrap VCPKG
+      if: matrix.os == 'windows'
+      run: .\vcpkg\bootstrap-vcpkg.bat
 
     - uses: actions/setup-dotnet@v1.9.0
       with:
@@ -173,12 +181,6 @@ jobs:
       with:
         arch: x64
 
-    - name: Set VCPKG triplet
-      shell: bash
-      run: |
-        echo "VCPKG_DEFAULT_TRIPLET=${{ matrix.triplet }}" >> "${GITHUB_ENV}"
-        echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
-
     - name: Configure Unix
       if: matrix.os != 'windows'
       run: |
@@ -193,13 +195,12 @@ jobs:
     - name: Configure Windows
       if: matrix.os == 'windows'
       run: |
-        & "${env:VCPKG_ROOT}\bootstrap-vcpkg.bat"
         # Setup NuGet authentication
-        & "$(& "${env:VCPKG_ROOT}\vcpkg.exe" fetch nuget | select -last 1)" setapikey `
+        & "$(./vcpkg/vcpkg.exe fetch nuget | select -last 1)" setapikey `
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
           "${{ secrets.GITHUB_TOKEN }}"
-        cmake --preset=ci-${{ matrix.os }} \
-          -D BUILD_SHARED_LIBS=${{ matrix.shared }}
+        cmake --preset=ci-${{ matrix.os }} `
+          -DBUILD_SHARED_LIBS=${{ matrix.shared }}
 
     - name: Build
       run: cmake --build build --config Release -j 2
