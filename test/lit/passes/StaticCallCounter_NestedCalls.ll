@@ -1,7 +1,7 @@
 ; RUN:  opt --enable-new-pm=0 -load %passlib --legacy-static-cc -analyze %s | FileCheck %s
 ; RUN:  opt -load-pass-plugin %passlib -passes="print<static-cc>" -disable-output %s 2>&1 | FileCheck %s
 
-; Makes sure that nested function calls are analysed correctly. Note that only
+; Makes sure that nested function calls are analyzed correctly. Note that only
 ; compile-time calls are reported. At run-time foo is called 3 times, bar 2
 ; times and fez 1 time.
 

@@ -1,3 +1,15 @@
+/**
+ * Copied from
+ * https://github.com/banach-space/llvm-tutor/blob/90be75044070b6ae70d01c783504e763693cbdbe/include/StaticCallCounter.h
+ *
+ * DESCRIPTION:
+ *  Declares the StaticCallCounter Passes
+ *      * new pass manager interface
+ *      * legacy pass manager interface
+ *      * printer pass for the new pass manager
+ *
+ * License: MIT
+ */
 #pragma once
 
 #include "lleg/lleg_export.hpp"
@@ -105,18 +117,17 @@ LLEG_EXPORT auto getStaticCallCounterPluginInfo()
 
 // Windows has no concept of weak symbols
 #ifndef _WIN32
-extern "C" LLVM_ATTRIBUTE_WEAK LLEG_EXPORT auto
-llvmGetPassPluginInfo() -> llvm::PassPluginLibraryInfo
+extern "C" LLVM_ATTRIBUTE_WEAK LLEG_EXPORT auto llvmGetPassPluginInfo()
+    -> llvm::PassPluginLibraryInfo
 {
   return getStaticCallCounterPluginInfo();
 }
-#endif // _WIN32
+#endif  // _WIN32
 
 //------------------------------------------------------------------------------
 // Legacy PM interface
 //------------------------------------------------------------------------------
-struct LLEG_EXPORT LegacyStaticCallCounter
-    : public llvm::ModulePass
+struct LLEG_EXPORT LegacyStaticCallCounter : public llvm::ModulePass
 {
   static char ID;
   LegacyStaticCallCounter()

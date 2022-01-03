@@ -104,7 +104,7 @@ if (NOT WIN32)
 
     if (APPLE)
         # Allow undefined symbols in shared objects on Darwin (this is the
-        # default behaviour on Linux)
+        # default behavior on Linux)
         target_link_options(lleg_llegPass PRIVATE -undefined dynamic_lookup)
 
         # Change default CMake module output suffix on macOS. By default this

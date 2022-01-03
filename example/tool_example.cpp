@@ -13,6 +13,9 @@
 //    # Now you can run this tool as follows:
 //      <BUILD/DIR>/bin/static <output-llvm-file>
 //
+// Copied from
+// https://github.com/banach-space/llvm-tutor/blob/90be75044070b6ae70d01c783504e763693cbdbe/tools/StaticMain.cpp
+//
 // License: MIT
 //========================================================================
 

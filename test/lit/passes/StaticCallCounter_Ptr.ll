@@ -1,7 +1,7 @@
 ; RUN:  opt --enable-new-pm=0 -load %passlib --legacy-static-cc -analyze %s | FileCheck %s
 ; RUN:  opt -load-pass-plugin %passlib -passes="print<static-cc>" -disable-output %s 2>&1 | FileCheck %s
 
-; Makes sure that calls via function pointers are not analysed
+; Makes sure that calls via function pointers are not analyzed
 
 ; CHECK-NOT: foo
 ; CHECK-NOT: bar

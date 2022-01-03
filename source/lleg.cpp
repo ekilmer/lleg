@@ -1,3 +1,9 @@
+/**
+ * Copied from
+ * https://github.com/banach-space/llvm-tutor/blob/90be75044070b6ae70d01c783504e763693cbdbe/lib/StaticCallCounter.cpp
+ *
+ * License: MIT
+ */
 #include "lleg/lleg.hpp"
 
 #include "llvm/Passes/PassBuilder.h"
