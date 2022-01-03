@@ -58,11 +58,11 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set VCPKG triplet
-      shell: bash
+    - name: Bootstrap VCPKG
       run: |
         echo "VCPKG_DEFAULT_TRIPLET=x64-linux-release" >> "${GITHUB_ENV}"
         echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
+        "${VCPKG_ROOT}/bootstrap-vcpkg.sh"
 
     - name: Configure
       run: |
@@ -104,9 +104,9 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set VCPKG triplet
-      shell: bash
+    - name: Bootstrap VCPKG
       run: |
+        "${VCPKG_ROOT}/bootstrap-vcpkg.sh"
         echo "VCPKG_DEFAULT_TRIPLET=x64-linux-release" >> "${GITHUB_ENV}"
         echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
 
@@ -167,21 +167,22 @@ jobs:
       if: matrix.os == 'ubuntu'
       run: sudo apt-get install clang-tidy cppcheck -y -q
 
-    - name: Set VCPKG triplet
-      shell: bash
-      run: |
-        echo "VCPKG_DEFAULT_TRIPLET=${{ matrix.triplet }}" >> "${GITHUB_ENV}"
-        echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
-
     - name: Setup Visual Studio 64 bit
       if: matrix.os == 'windows'
       uses: ilammy/msvc-dev-cmd@v1.10.0
       with:
         arch: x64
 
+    - name: Set VCPKG triplet
+      shell: bash
+      run: |
+        echo "VCPKG_DEFAULT_TRIPLET=${{ matrix.triplet }}" >> "${GITHUB_ENV}"
+        echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
+
     - name: Configure Unix
       if: matrix.os != 'windows'
       run: |
+        "${VCPKG_ROOT}/bootstrap-vcpkg.sh"
         # Setup NuGet authentication
         mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
@@ -192,6 +193,7 @@ jobs:
     - name: Configure Windows
       if: matrix.os == 'windows'
       run: |
+        & "${env:VCPKG_ROOT}/bootstrap-vcpkg.bat"
         # Setup NuGet authentication
         & "$(& "${env:VCPKG_ROOT}\vcpkg.exe" fetch nuget | select -last 1)" setapikey `
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
