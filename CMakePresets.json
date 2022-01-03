@@ -110,6 +110,13 @@
       "cacheVariables": {
         "COVERAGE_HTML_COMMAND": "",
         "VCPKG_TARGET_TRIPLET": "x64-linux-release"
+      },
+      "environment": {
+        "VCPKG_ROOT": "${sourceDir}/vcpkg"
+      },
+      "errors": {
+        "dev": false,
+        "deprecated": false
       }
     },
     {
@@ -120,6 +127,13 @@
         "CMAKE_BUILD_TYPE": "Sanitize",
         "CMAKE_CXX_FLAGS_SANITIZE": "-O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common",
         "VCPKG_TARGET_TRIPLET": "x64-linux-release"
+      },
+      "environment": {
+        "VCPKG_ROOT": "${sourceDir}/vcpkg"
+      },
+      "errors": {
+        "dev": false,
+        "deprecated": false
       }
     },
     {
@@ -132,6 +146,13 @@
       "inherits": ["ci-build", "ci-unix", "dev-mode", "vcpkg"],
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-osx-release"
+      },
+      "environment": {
+        "VCPKG_ROOT": "${sourceDir}/vcpkg"
+      },
+      "errors": {
+        "dev": false,
+        "deprecated": false
       }
     },
     {
@@ -139,14 +160,18 @@
       "inherits": ["ci-build", "ci-unix", "clang-tidy", "cppcheck", "dev-mode", "vcpkg"],
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-linux-release"
+      },
+      "environment": {
+        "VCPKG_ROOT": "${sourceDir}/vcpkg"
+      },
+      "errors": {
+        "dev": false,
+        "deprecated": false
       }
     },
     {
       "name": "ci-windows",
-      "inherits": ["ci-build", "ci-win64", "dev-mode", "vcpkg"],
-      "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-release"
-      }
+      "inherits": ["ci-build", "ci-win64", "dev-mode"]
     }
   ]
 }

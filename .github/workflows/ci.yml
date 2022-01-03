@@ -39,11 +39,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: github.repository_owner == 'ekilmer'
-
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-
     steps:
     - uses: actions/checkout@v2
       with:
@@ -63,9 +58,9 @@ jobs:
 
     - name: Configure
       run: |
-        "${VCPKG_ROOT}/bootstrap-vcpkg.sh"
+        ./vcpkg/bootstrap-vcpkg.sh
         pipx install lit
-        mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
+        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" setapikey \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           "${{ secrets.GITHUB_TOKEN }}"
         cmake --preset=ci-coverage
@@ -90,9 +85,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-
     steps:
     - uses: actions/checkout@v2
       with:
@@ -109,9 +101,9 @@ jobs:
     - name: Configure
       env: { CXX: clang++, CC: clang }
       run: |
-        "${VCPKG_ROOT}/bootstrap-vcpkg.sh"
+        ./vcpkg/bootstrap-vcpkg.sh
         pipx install lit
-        mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
+        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" setapikey \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           "${{ secrets.GITHUB_TOKEN }}"
         cmake --preset=ci-sanitize
@@ -146,17 +138,13 @@ jobs:
 
     runs-on: ${{ matrix.os }}-latest
 
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
 
-    - name: Bootstrap VCPKG
-      if: matrix.os == 'windows'
-      run: .\vcpkg\bootstrap-vcpkg.bat
+    - name: Install Dependencies
+      run: pipx install lit
 
     - uses: actions/setup-dotnet@v1.9.0
       with:
@@ -179,10 +167,9 @@ jobs:
     - name: Configure Unix
       if: matrix.os != 'windows'
       run: |
-        pipx install lit
-        "${VCPKG_ROOT}/bootstrap-vcpkg.sh"
+        ./vcpkg/bootstrap-vcpkg.sh
         # Setup NuGet authentication
-        mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
+        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" setapikey \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           "${{ secrets.GITHUB_TOKEN }}"
         cmake --preset=ci-${{ matrix.os }} \
@@ -191,7 +178,8 @@ jobs:
     - name: Configure Windows
       if: matrix.os == 'windows'
       run: |
-        pipx install lit
+        # TODO: Build/Find LLVM
+        ./vcpkg/bootstrap-vcpkg.bat
         # Setup NuGet authentication
         & "$(./vcpkg/vcpkg.exe fetch nuget | select -last 1)" setapikey `
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
