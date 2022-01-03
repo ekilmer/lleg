@@ -58,6 +58,12 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Set VCPKG triplet
+      shell: bash
+      run: |
+        echo "VCPKG_DEFAULT_TRIPLET=x64-linux-release" >> "${GITHUB_ENV}"
+        echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
+
     - name: Configure
       run: |
         mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
@@ -97,6 +103,12 @@ jobs:
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set VCPKG triplet
+      shell: bash
+      run: |
+        echo "VCPKG_DEFAULT_TRIPLET=x64-linux-release" >> "${GITHUB_ENV}"
+        echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
 
     - name: Configure
       env: { CXX: clang++-12 }
