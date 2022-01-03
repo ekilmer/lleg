@@ -109,7 +109,7 @@ if (NOT WIN32)
 
         # Change default CMake module output suffix on macOS. By default this
         # is '.so', but opt looks for '.dylib'
-        set_target_properties(lleg_llegPass} PROPERTIES SUFFIX ".dylib")
+        set_target_properties(lleg_llegPass PROPERTIES SUFFIX ".dylib")
     endif()
 endif()
 
