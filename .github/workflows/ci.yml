@@ -125,7 +125,6 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1.10.0
       with:
         arch: x64
-        toolset: 17.XX
 
     - name: Setup Vcpkg
       uses: lukka/run-vcpkg@v10
