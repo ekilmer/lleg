@@ -64,6 +64,7 @@ jobs:
     - name: Configure
       run: |
         "${VCPKG_ROOT}/bootstrap-vcpkg.sh"
+        pipx install lit
         mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           "${{ secrets.GITHUB_TOKEN }}"
@@ -106,9 +107,10 @@ jobs:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Configure
-      env: { CXX: clang++-12 }
+      env: { CXX: clang++, CC: clang }
       run: |
         "${VCPKG_ROOT}/bootstrap-vcpkg.sh"
+        pipx install lit
         mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           "${{ secrets.GITHUB_TOKEN }}"
@@ -132,6 +134,7 @@ jobs:
     needs: [lint]
 
     strategy:
+      fail-fast: false
       matrix:
         os: [macos, ubuntu, windows]
 
@@ -176,6 +179,7 @@ jobs:
     - name: Configure Unix
       if: matrix.os != 'windows'
       run: |
+        pipx install lit
         "${VCPKG_ROOT}/bootstrap-vcpkg.sh"
         # Setup NuGet authentication
         mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
@@ -187,6 +191,7 @@ jobs:
     - name: Configure Windows
       if: matrix.os == 'windows'
       run: |
+        pipx install lit
         # Setup NuGet authentication
         & "$(./vcpkg/vcpkg.exe fetch nuget | select -last 1)" setapikey `
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
