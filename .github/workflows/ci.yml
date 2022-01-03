@@ -41,6 +41,9 @@ jobs:
 
     if: github.repository_owner == 'ekilmer'
 
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
     steps:
     - uses: actions/checkout@v2
       with:
@@ -57,11 +60,6 @@ jobs:
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Set VCPKG triplet
-      run: |
-        echo "VCPKG_DEFAULT_TRIPLET=x64-linux-release" >> "${GITHUB_ENV}"
-        echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
 
     - name: Configure
       run: |
@@ -91,6 +89,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
     steps:
     - uses: actions/checkout@v2
       with:
@@ -103,11 +104,6 @@ jobs:
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Set VCPKG triplet
-      run: |
-        echo "VCPKG_DEFAULT_TRIPLET=x64-linux-release" >> "${GITHUB_ENV}"
-        echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
 
     - name: Configure
       env: { CXX: clang++-12 }
@@ -144,14 +140,10 @@ jobs:
         include:
         - { type: shared, shared: YES }
         - { type: static, shared: NO }
-        - { os: macos, triplet: x64_osx_release }
-        - { os: ubuntu, triplet: x64_linux_release }
-        - { os: windows, triplet: x64_windows_release }
 
     runs-on: ${{ matrix.os }}-latest
 
     env:
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
     steps:

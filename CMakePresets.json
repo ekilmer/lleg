@@ -108,7 +108,8 @@
       "name": "ci-coverage",
       "inherits": ["coverage-unix", "dev-mode", "vcpkg"],
       "cacheVariables": {
-        "COVERAGE_HTML_COMMAND": ""
+        "COVERAGE_HTML_COMMAND": "",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-release"
       }
     },
     {
@@ -117,7 +118,8 @@
       "inherits": ["ci-unix", "dev-mode", "vcpkg"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Sanitize",
-        "CMAKE_CXX_FLAGS_SANITIZE": "-O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common"
+        "CMAKE_CXX_FLAGS_SANITIZE": "-O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-release"
       }
     },
     {
@@ -127,15 +129,24 @@
     },
     {
       "name": "ci-macos",
-      "inherits": ["ci-build", "ci-unix", "dev-mode", "vcpkg"]
+      "inherits": ["ci-build", "ci-unix", "dev-mode", "vcpkg"],
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-osx-release"
+      }
     },
     {
       "name": "ci-ubuntu",
-      "inherits": ["ci-build", "ci-unix", "clang-tidy", "cppcheck", "dev-mode", "vcpkg"]
+      "inherits": ["ci-build", "ci-unix", "clang-tidy", "cppcheck", "dev-mode", "vcpkg"],
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux-release"
+      }
     },
     {
       "name": "ci-windows",
-      "inherits": ["ci-build", "ci-win64", "dev-mode", "vcpkg"]
+      "inherits": ["ci-build", "ci-win64", "dev-mode", "vcpkg"],
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release"
+      }
     }
   ]
 }
