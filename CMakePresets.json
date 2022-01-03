@@ -106,7 +106,7 @@
     },
     {
       "name": "ci-coverage",
-      "inherits": ["coverage-unix", "dev-mode"],
+      "inherits": ["coverage-unix", "dev-mode", "vcpkg"],
       "cacheVariables": {
         "COVERAGE_HTML_COMMAND": ""
       }

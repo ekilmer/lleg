@@ -7,6 +7,13 @@ on:
     branches:
     - main
 
+env:
+  # "Source" is set in the vcpkg install step
+  VCPKG_BINARY_SOURCES: 'clear;nuget,Source,readwrite;nugettimeout,3601'
+  # Self-hosted runners can hopefully reuse already downloaded packages
+  VCPKG_USE_NUGET_CACHE: 1
+
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -43,8 +50,20 @@ jobs:
       run: sudo apt-get update -q
         && sudo apt-get install lcov -q -y
 
+    - uses: actions/setup-dotnet@v1.9.0
+      with:
+        dotnet-version: '3.1.x' # SDK Version to use.
+        # Sets as "Source"
+        source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Configure
-      run: cmake --preset=ci-coverage
+      run: |
+        mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          "${{ secrets.GITHUB_TOKEN }}"
+        cmake --preset=ci-coverage
 
     - name: Build
       run: cmake --build build/coverage -j 2
@@ -71,9 +90,21 @@ jobs:
       with:
         submodules: recursive
 
+    - uses: actions/setup-dotnet@v1.9.0
+      with:
+        dotnet-version: '3.1.x' # SDK Version to use.
+        # Sets as "Source"
+        source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Configure
       env: { CXX: clang++-12 }
-      run: cmake --preset=ci-sanitize
+      run: |
+        mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          "${{ secrets.GITHUB_TOKEN }}"
+        cmake --preset=ci-sanitize
 
     - name: Build
       run: cmake --build build/sanitize -j 2
@@ -112,13 +143,23 @@ jobs:
       with:
         submodules: recursive
 
+    - uses: actions/setup-dotnet@v1.9.0
+      with:
+        dotnet-version: '3.1.x' # SDK Version to use.
+        # Sets as "Source"
+        source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Install static analyzers
       if: matrix.os == 'ubuntu'
       run: sudo apt-get install clang-tidy cppcheck -y -q
 
     - name: Set VCPKG triplet
       shell: bash
-      run: echo "VCPKG_DEFAULT_TRIPLET=${{ matrix.triplet }}" >> "${GITHUB_ENV}"
+      run: |
+        echo "VCPKG_DEFAULT_TRIPLET=${{ matrix.triplet }}" >> "${GITHUB_ENV}"
+        echo "VCPKG_ROOT=$(pwd)/vcpkg" >> "${GITHUB_ENV}"
 
     - name: Setup Visual Studio 64 bit
       if: matrix.os == 'windows'
@@ -126,12 +167,25 @@ jobs:
       with:
         arch: x64
 
-    - name: Setup Vcpkg
-      uses: lukka/run-vcpkg@v10
+    - name: Configure Unix
+      if: matrix.os != 'windows'
+      run: |
+        # Setup NuGet authentication
+        mono "$(${VCPKG_ROOT}/vcpkg fetch nuget | tail -n 1)" setapikey \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          "${{ secrets.GITHUB_TOKEN }}"
+        cmake --preset=ci-${{ matrix.os }} \
+          -D BUILD_SHARED_LIBS=${{ matrix.shared }}
 
-    - name: Configure
-      run: cmake --preset=ci-${{ matrix.os }}
-        -D BUILD_SHARED_LIBS=${{ matrix.shared }}
+    - name: Configure Windows
+      if: matrix.os == 'windows'
+      run: |
+        # Setup NuGet authentication
+        & "$(& "${env:VCPKG_ROOT}\vcpkg.exe" fetch nuget | select -last 1)" setapikey `
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
+          "${{ secrets.GITHUB_TOKEN }}"
+        cmake --preset=ci-${{ matrix.os }} \
+          -D BUILD_SHARED_LIBS=${{ matrix.shared }}
 
     - name: Build
       run: cmake --build build --config Release -j 2
