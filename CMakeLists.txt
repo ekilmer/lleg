@@ -79,10 +79,12 @@ if (NOT WIN32)
 
     set_target_properties(
         lleg_llegPass PROPERTIES
+        # TODO: Check if there's any way to turn this on for passes
         # CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN YES
-        VERSION "${PROJECT_VERSION}"
-        SOVERSION "${PROJECT_VERSION_MAJOR}"
+        # See https://gitlab.kitware.com/cmake/cmake/-/issues/20782
+        # VERSION "${PROJECT_VERSION}"
+        # SOVERSION "${PROJECT_VERSION_MAJOR}"
         EXPORT_NAME llegPass
         OUTPUT_NAME llegPass
         PREFIX ""
