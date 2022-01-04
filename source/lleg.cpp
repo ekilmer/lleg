@@ -108,7 +108,7 @@ auto getStaticCallCounterPluginInfo() -> llvm::PassPluginLibraryInfo
                 [](llvm::ModuleAnalysisManager& MAM)
                 { MAM.registerPass([&] { return StaticCallCounter(); }); });
           }};
-};
+}
 
 //------------------------------------------------------------------------------
 // Legacy PM Registration
