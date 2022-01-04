@@ -127,15 +127,23 @@ message(STATUS "LLVM STATUS:
     Targets     ${LLVM_TARGETS_TO_BUILD}"
 )
 
+# LLVM Static libs for lleg_lleg
+set(lleg_lleg_llvm_libs LLVMCore LLVMPasses LLVMIRReader LLVMSupport)
 if(NOT BUILD_SHARED_LIBS)
     target_link_libraries(lleg_lleg
-        PUBLIC LLVMCore LLVMPasses LLVMIRReader LLVMSupport
+        PUBLIC ${lleg_lleg_llvm_libs}
     )
 else()
-    # TODO Check if the dynamic LLVM library is actually there
-    target_link_libraries(lleg_lleg
+    if(TARGET LLVM)
+      target_link_libraries(lleg_lleg
         PUBLIC LLVM
-    )
+      )
+    else()
+      # message(FATAL_ERROR "Could not find shared LLVM library for linking")
+      target_link_libraries(lleg_lleg
+        PUBLIC ${lleg_lleg_llvm_libs}
+      )
+    endif()
 endif()
 
 if (NOT WIN32)
