@@ -104,6 +104,8 @@ elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   # )
   set(sanitizer_path "/usr/lib64/libasan.so.6.0.0")
 endif()
+# NOTE: Using LD_PRELOAD can catch all sorts of unrelated leaks during testing.
+# See (and possibly adjust) lsan_suppressions.txt for more info
 set_tests_properties(lleg_test-lit PROPERTIES
   ENVIRONMENT
     "$<$<CONFIG:Sanitize>:LD_PRELOAD=${sanitizer_path};LSAN_OPTIONS=suppressions=${CMAKE_CURRENT_LIST_DIR}/lit/lsan_suppressions.txt>"
