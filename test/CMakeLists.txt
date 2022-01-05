@@ -45,12 +45,12 @@ if(NOT BUILD_SHARED_LIBS)
     )
 else()
     if(TARGET LLVM)
-        target_link_libraries(lleg_tool_test_llvm_libs
+        target_link_libraries(lleg_tool_test
             PRIVATE LLVM
         )
     else()
         # message(FATAL_ERROR "Could not find shared LLVM library for linking")
-        target_link_libraries(lleg_tool_test_llvm_libs
+        target_link_libraries(lleg_tool_test
             PRIVATE ${lleg_tool_test_llvm_libs}
         )
     endif()
