@@ -108,6 +108,7 @@
       "name": "ci-coverage",
       "inherits": ["coverage-unix", "dev-mode", "vcpkg"],
       "cacheVariables": {
+        "CMAKE_CXX_FLAGS_COVERAGE": "-DNDEBUG -Og -g --coverage -fkeep-inline-functions -fkeep-static-functions",
         "COVERAGE_HTML_COMMAND": "",
         "VCPKG_TARGET_TRIPLET": "x64-linux-release"
       },
