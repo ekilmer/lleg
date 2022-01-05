@@ -106,7 +106,7 @@ elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 endif()
 set_tests_properties(lleg_test-lit PROPERTIES
   ENVIRONMENT
-    "$<$<CONFIG:Sanitize>:LD_PRELOAD=${sanitizer_path};LSAN_OPTIONS=print_suppressions=false:suppressions=${CMAKE_CURRENT_LIST_DIR}/lit/lsan_suppressions.txt>"
+    "$<$<CONFIG:Sanitize>:LD_PRELOAD=${sanitizer_path};LSAN_OPTIONS=suppressions=${CMAKE_CURRENT_LIST_DIR}/lit/lsan_suppressions.txt>"
 )
 
 add_folders(Test)
