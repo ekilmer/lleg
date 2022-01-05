@@ -23,7 +23,7 @@ windows_set_path(lleg_test lleg::lleg)
 add_executable(lleg_tool_test tool-src/lleg_tool_test.cpp)
 target_link_libraries(lleg_tool_test PRIVATE lleg::lleg)
 target_compile_features(lleg_tool_test PRIVATE cxx_std_17)
-# Needed for compatiblity with ASAN loadable modules when running in LIT test.
+# Needed for compatibility with ASAN loadable modules when running in LIT test.
 target_link_options(lleg_tool_test PRIVATE $<$<AND:$<CONFIG:Sanitize>,$<C_COMPILER_ID:Clang>>:-shared-libsan>)
 
 # Setup LLVM's own LIT testing
