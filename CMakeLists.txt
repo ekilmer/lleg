@@ -113,6 +113,10 @@ if (NOT WIN32)
         # is '.so', but opt looks for '.dylib'
         set_target_properties(lleg_llegPass PROPERTIES SUFFIX ".dylib")
     endif()
+
+    # Special sanitizer setting needed for loadable modules. See below
+    # https://github.com/google/sanitizers/issues/1086#issuecomment-492952798
+    target_link_options(lleg_llegPass PRIVATE $<$<AND:$<CONFIG:Sanitize>,$<C_COMPILER_ID:Clang>>:-shared-libsan>)
 endif()
 
 # ---- Declare dependencies ----

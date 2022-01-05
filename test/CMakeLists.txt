@@ -23,6 +23,8 @@ windows_set_path(lleg_test lleg::lleg)
 add_executable(lleg_tool_test tool-src/lleg_tool_test.cpp)
 target_link_libraries(lleg_tool_test PRIVATE lleg::lleg)
 target_compile_features(lleg_tool_test PRIVATE cxx_std_17)
+# Needed for compatiblity with ASAN loadable modules when running in LIT test.
+target_link_options(lleg_tool_test PRIVATE $<$<AND:$<CONFIG:Sanitize>,$<C_COMPILER_ID:Clang>>:-shared-libsan>)
 
 # Setup LLVM's own LIT testing
 find_package(LLVM 13 CONFIG REQUIRED)
@@ -80,6 +82,31 @@ add_test(
   NAME lleg_test-lit
   COMMAND ${llvm_lit} ${LLVM_LIT_ARGS} lit
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
+)
+
+# Needed for shared sanitizer libraries
+# File names come from https://stackoverflow.com/a/55692977
+set(sanitizer_path)
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+  execute_process(COMMAND
+    "${CMAKE_C_COMPILER}" -print-file-name=libclang_rt.asan-x86_64.so
+    OUTPUT_VARIABLE sanitizer_path
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+  # TODO: This doesn't work on Fedora 35... It gives back a linker script at
+  # the path: /usr/lib/gcc/x86_64-redhat-linux/11/libasan.so
+  # With content: INPUT ( /usr/lib64/libasan.so.6.0.0 )
+  # execute_process(COMMAND
+  #   "${CMAKE_C_COMPILER}" -print-file-name=libasan.so
+  #   OUTPUT_VARIABLE sanitizer_path
+  #   OUTPUT_STRIP_TRAILING_WHITESPACE
+  # )
+  set(sanitizer_path "/usr/lib64/libasan.so.6.0.0")
+endif()
+set_tests_properties(lleg_test-lit PROPERTIES
+  ENVIRONMENT
+    "$<$<CONFIG:Sanitize>:LD_PRELOAD=${sanitizer_path};LSAN_OPTIONS=print_suppressions=false:suppressions=${CMAKE_CURRENT_LIST_DIR}/lit/lsan_suppressions.txt>"
 )
 
 add_folders(Test)
