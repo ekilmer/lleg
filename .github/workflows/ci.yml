@@ -184,14 +184,17 @@ jobs:
         # Copy vcpkg to C: drive where we have more space
         mkdir C:\a
         cp D:\a\${{ github.event.repository.name }}\${{ github.event.repository.name }}\vcpkg C:\a -Recurse
-        # TODO: Build/Find LLVM
         C:\a\vcpkg\bootstrap-vcpkg.bat
         # Setup NuGet authentication
         & "$(C:\\a\\vcpkg\\vcpkg.exe fetch nuget | select -last 1)" setapikey `
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
           "${{ secrets.GITHUB_TOKEN }}"
+
+        C:\a\vcpkg\vcpkg.exe install --debug --triplet x64-windows-release --overlay-ports=D:/a/lleg/lleg/ports "llvm[utils]"
+
         cmake --preset=ci-${{ matrix.os }} `
           -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+
         Get-PSDrive
 
     - name: Build
