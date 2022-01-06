@@ -110,5 +110,6 @@ set_tests_properties(lleg_test-lit PROPERTIES
   ENVIRONMENT
     "$<$<CONFIG:Sanitize>:LD_PRELOAD=${sanitizer_path};LSAN_OPTIONS=suppressions=${CMAKE_CURRENT_LIST_DIR}/lit/lsan_suppressions.txt>"
 )
+windows_set_path(lleg_test-lit lleg::lleg)
 
 add_folders(Test)
