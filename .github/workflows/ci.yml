@@ -177,15 +177,22 @@ jobs:
 
     - name: Configure Windows
       if: matrix.os == 'windows'
+      env:
+        VCPKG_ROOT: C:\\a\\vcpkg
       run: |
+        Get-PSDrive
+        # Copy vcpkg to C: drive where we have more space
+        mkdir C:\a
+        cp D:\a\${{ github.event.repository.name }}\${{ github.event.repository.name }}\vcpkg C:\a -Recurse
         # TODO: Build/Find LLVM
-        ./vcpkg/bootstrap-vcpkg.bat
+        C:\a\vcpkg\bootstrap-vcpkg.bat
         # Setup NuGet authentication
-        & "$(./vcpkg/vcpkg.exe fetch nuget | select -last 1)" setapikey `
+        & "$(C:\\a\\vcpkg\\vcpkg.exe fetch nuget | select -last 1)" setapikey `
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
           "${{ secrets.GITHUB_TOKEN }}"
         cmake --preset=ci-${{ matrix.os }} `
           -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+        Get-PSDrive
 
     - name: Build
       run: cmake --build build --config Release -j 2

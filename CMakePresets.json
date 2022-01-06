@@ -175,7 +175,14 @@
     },
     {
       "name": "ci-windows",
-      "inherits": ["ci-build", "ci-win64", "dev-mode"]
+      "inherits": ["ci-build", "ci-win64", "dev-mode", "vcpkg"],
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release"
+      },
+      "errors": {
+        "dev": false,
+        "deprecated": false
+      }
     }
   ]
 }
