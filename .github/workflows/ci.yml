@@ -127,6 +127,10 @@ jobs:
         include:
         - { type: shared, shared: YES }
         - { type: static, shared: NO }
+        exclude:
+        # LLVM does not support dynamic linking on Windows. This might change
+        # if LLVM_BUILD_LLVM_DYLIB option is ever supported on Windows
+        - { os: windows, type: shared }
 
     runs-on: ${{ matrix.os }}-latest
 
