@@ -120,7 +120,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos, ubuntu, windows]
+        os: [macos-11, ubuntu-20.04, windows-2022]
 
         type: [shared, static]
 
@@ -130,9 +130,9 @@ jobs:
         exclude:
         # LLVM does not support dynamic linking on Windows. This might change
         # if LLVM_BUILD_LLVM_DYLIB option is ever supported on Windows
-        - { os: windows, type: shared }
+        - { os: windows-2022, type: shared }
 
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
@@ -143,17 +143,17 @@ jobs:
       run: pipx install lit
 
     - name: Install static analyzers
-      if: matrix.os == 'ubuntu'
+      if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt-get install clang-tidy cppcheck -y -q
 
     - name: Setup Visual Studio 64 bit
-      if: matrix.os == 'windows'
+      if: startsWith(matrix.os, 'windows')
       uses: ilammy/msvc-dev-cmd@v1.10.0
       with:
         arch: x64
 
     - name: Configure Unix
-      if: matrix.os != 'windows'
+      if: "!startsWith(matrix.os, 'windows')"
       run: |
         ./vcpkg/bootstrap-vcpkg.sh
         # Setup NuGet authentication
@@ -168,7 +168,7 @@ jobs:
           -D BUILD_SHARED_LIBS=${{ matrix.shared }}
 
     - name: Configure Windows
-      if: matrix.os == 'windows'
+      if: startsWith(matrix.os, 'windows')
       env:
         VCPKG_ROOT: C:\\a\\vcpkg
       run: |

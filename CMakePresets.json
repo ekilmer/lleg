@@ -87,7 +87,7 @@
     {
       "name": "ci-win64",
       "inherits": ["flags-windows", "ci-std"],
-      "generator": "Visual Studio 16 2019",
+      "generator": "Visual Studio 17 2022",
       "architecture": "x64",
       "hidden": true
     },
@@ -146,7 +146,7 @@
       "hidden": true
     },
     {
-      "name": "ci-macos",
+      "name": "ci-macos-11",
       "inherits": ["ci-build", "ci-unix", "dev-mode", "vcpkg"],
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-osx-release"
@@ -160,7 +160,7 @@
       }
     },
     {
-      "name": "ci-ubuntu",
+      "name": "ci-ubuntu-20.04",
       "inherits": ["ci-build", "ci-unix", "clang-tidy", "cppcheck", "dev-mode", "vcpkg"],
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-linux-release"
@@ -174,7 +174,7 @@
       }
     },
     {
-      "name": "ci-windows",
+      "name": "ci-windows-2022",
       "inherits": ["ci-build", "ci-win64", "dev-mode", "vcpkg"],
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-windows-release"
