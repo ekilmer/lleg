@@ -10,7 +10,6 @@ on:
 env:
   # "Source" is set in the vcpkg install step
   VCPKG_BINARY_SOURCES: 'clear;nuget,GitHub,readwrite;nugettimeout,3601'
-  # Self-hosted runners can hopefully reuse already downloaded packages
   VCPKG_USE_NUGET_CACHE: 1
 
 
@@ -28,7 +27,7 @@ jobs:
       run: pip3 install codespell
 
     - name: Lint
-      run: cmake -D FORMAT_COMMAND=clang-format-12 -P cmake/lint.cmake
+      run: cmake -DFORMAT_COMMAND=clang-format-12 -P cmake/lint.cmake
 
     - name: Spell check
       if: always()
@@ -51,15 +50,32 @@ jobs:
     - name: Configure
       run: |
         ./vcpkg/bootstrap-vcpkg.sh
-        pipx install lit
+
+        pipx install lit==13.0.0
+
+        # Setup NuGet authentication
         mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
           sources add \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
           -name "GitHub" \
           -username "${{ github.repository_owner }}" \
+          -password "${{ secrets.GITHUB_TOKEN }}" || true
+
+        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+          sources update \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}"
-        cmake --preset=ci-coverage
+
+        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+          setapikey \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          "${{ secrets.GITHUB_TOKEN }}"
+
+        cmake --preset=ci-coverage -DVCPKG_INSTALL_OPTIONS=--debug
 
     - name: Build
       run: cmake --build build/coverage -j 2
@@ -90,15 +106,32 @@ jobs:
       env: { CXX: clang++, CC: clang }
       run: |
         ./vcpkg/bootstrap-vcpkg.sh
-        pipx install lit
+
+        pipx install lit==13.0.0
+
+        # Setup NuGet authentication
         mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
           sources add \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
           -name "GitHub" \
           -username "${{ github.repository_owner }}" \
+          -password "${{ secrets.GITHUB_TOKEN }}" || true
+
+        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+          sources update \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}"
-        cmake --preset=ci-sanitize
+
+        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+          setapikey \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          "${{ secrets.GITHUB_TOKEN }}"
+
+        cmake --preset=ci-sanitize -DVCPKG_INSTALL_OPTIONS=--debug
 
     - name: Build
       run: cmake --build build/sanitize -j 2
@@ -127,6 +160,11 @@ jobs:
         include:
         - { type: shared, shared: YES }
         - { type: static, shared: NO }
+
+          # For vcpkg host triplet env variable
+        - { os: macos-11, os_name: osx }
+        - { os: ubuntu-20.04, os_name: linux }
+        - { os: windows-2022, os_name: windows }
         exclude:
         # LLVM does not support dynamic linking on Windows. This might change
         # if LLVM_BUILD_LLVM_DYLIB option is ever supported on Windows
@@ -134,13 +172,16 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    env:
+      VCPKG_HOST_TRIPLET: "x64-${{ matrix.os_name }}-release"
+
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
 
     - name: Install Dependencies
-      run: pipx install lit
+      run: pipx install lit==13.0.0
 
     - name: Install static analyzers
       if: startsWith(matrix.os, 'ubuntu')
@@ -156,6 +197,7 @@ jobs:
       if: "!startsWith(matrix.os, 'windows')"
       run: |
         ./vcpkg/bootstrap-vcpkg.sh
+
         # Setup NuGet authentication
         mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
           sources add \
@@ -163,9 +205,24 @@ jobs:
           -storepasswordincleartext \
           -name "GitHub" \
           -username "${{ github.repository_owner }}" \
+          -password "${{ secrets.GITHUB_TOKEN }}" || true
+
+        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+          sources update \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}"
+
+        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+          setapikey \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          "${{ secrets.GITHUB_TOKEN }}"
+
         cmake --preset=ci-${{ matrix.os }} \
-          -D BUILD_SHARED_LIBS=${{ matrix.shared }}
+          -DBUILD_SHARED_LIBS=${{ matrix.shared }} \
+          -DVCPKG_INSTALL_OPTIONS=--debug
 
     - name: Configure Windows
       if: startsWith(matrix.os, 'windows')
@@ -185,26 +242,52 @@ jobs:
           -storepasswordincleartext `
           -name "GitHub" `
           -username "${{ github.repository_owner }}" `
+          -password "${{ secrets.GITHUB_TOKEN }}" || true
+
+        & "$(C:\\a\\vcpkg\\vcpkg.exe fetch nuget | select -last 1)" `
+          sources update `
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
+          -storepasswordincleartext `
+          -name "GitHub" `
+          -username "${{ github.repository_owner }}" `
           -password "${{ secrets.GITHUB_TOKEN }}"
+
+        & "$(C:\\a\\vcpkg\\vcpkg.exe fetch nuget | select -last 1)" `
+          setapikey `
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
+          "${{ secrets.GITHUB_TOKEN }}"
 
         cd C:\a\vcpkg
         vcpkg.exe install --debug --triplet x64-windows-release --overlay-ports=D:/a/lleg/lleg/ports "llvm[utils]"
         cd D:\a\lleg\lleg
 
         cmake --preset=ci-${{ matrix.os }} `
-          -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+          -DBUILD_SHARED_LIBS=${{ matrix.shared }} `
+          -DVCPKG_INSTALL_OPTIONS=--debug
 
         Get-PSDrive
 
     - name: Build
-      run: cmake --build build --config Release -j 2
+      run: cmake --build build --config RelWithDebInfo -j 2
 
     - name: Install
-      run: cmake --install build --config Release --prefix prefix
+      run: cmake --install build --config RelWithDebInfo --prefix prefix
 
-    - name: Test
+    - name: Test Unix
+      if: "!startsWith(matrix.os, 'windows')"
       working-directory: build
-      run: ctest --output-on-failure -C Release
+      run: ctest --output-on-failure --verbose -C RelWithDebInfo
+
+      # Getting weird segfaults on Windows with CTest and lit that I can't reproduce locally
+    - name: Test Windows
+      if: startsWith(matrix.os, 'windows')
+      working-directory: build
+      run: |
+        cd test/RelWithDebInfo
+        lit -sv lit
+        cd ../../
+
+        ctest --output-on-failure --verbose -C RelWithDebInfo --exclude-regex ".*-lit"
 
   docs:
     # Deploy docs only when builds succeed
@@ -242,7 +325,7 @@ jobs:
         && sudo apt-get install doxygen -q -y
 
     - name: Build docs
-      run: cmake -B build -D "CMAKE_PROJECT_INCLUDE=$PWD/cmake/docs.cmake"
+      run: cmake -B build "-DCMAKE_PROJECT_INCLUDE=$PWD/cmake/docs.cmake"
         && cmake --build build --target docs
 
     - name: Deploy docs

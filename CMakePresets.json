@@ -81,7 +81,7 @@
       "hidden": true,
       "inherits": ["flags-unix", "ci-std"],
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     },
     {
@@ -110,7 +110,8 @@
       "cacheVariables": {
         "CMAKE_CXX_FLAGS_COVERAGE": "-DNDEBUG -Og -g --coverage -fkeep-inline-functions -fkeep-static-functions",
         "COVERAGE_HTML_COMMAND": "",
-        "VCPKG_TARGET_TRIPLET": "x64-linux-release"
+        "VCPKG_TARGET_TRIPLET": "x64-linux-release",
+        "VCPKG_HOST_TRIPLET": "x64-linux-release"
       },
       "environment": {
         "VCPKG_ROOT": "${sourceDir}/vcpkg"
@@ -130,7 +131,8 @@
         "CMAKE_EXE_LINKER_FLAGS_SANITIZE": "-fsanitize=address,undefined",
         "CMAKE_SHARED_LINKER_FLAGS_SANITIZE": "-fsanitize=address,undefined",
         "CMAKE_MODULE_LINKER_FLAGS_SANITIZE": "-fsanitize=address,undefined",
-        "VCPKG_TARGET_TRIPLET": "x64-linux-release"
+        "VCPKG_TARGET_TRIPLET": "x64-linux-release",
+        "VCPKG_HOST_TRIPLET": "x64-linux-release"
       },
       "environment": {
         "VCPKG_ROOT": "${sourceDir}/vcpkg"
@@ -149,7 +151,8 @@
       "name": "ci-macos-11",
       "inherits": ["ci-build", "ci-unix", "dev-mode", "vcpkg"],
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-osx-release"
+        "VCPKG_TARGET_TRIPLET": "x64-osx-release",
+        "VCPKG_HOST_TRIPLET": "x64-osx-release"
       },
       "environment": {
         "VCPKG_ROOT": "${sourceDir}/vcpkg"
@@ -163,7 +166,8 @@
       "name": "ci-ubuntu-20.04",
       "inherits": ["ci-build", "ci-unix", "clang-tidy", "cppcheck", "dev-mode", "vcpkg"],
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux-release"
+        "VCPKG_TARGET_TRIPLET": "x64-linux-release",
+        "VCPKG_HOST_TRIPLET": "x64-linux-release"
       },
       "environment": {
         "VCPKG_ROOT": "${sourceDir}/vcpkg"
@@ -177,7 +181,8 @@
       "name": "ci-windows-2022",
       "inherits": ["ci-build", "ci-win64", "dev-mode", "vcpkg"],
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-release"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release",
+        "VCPKG_HOST_TRIPLET": "x64-windows-release"
       },
       "errors": {
         "dev": false,
