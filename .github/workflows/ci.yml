@@ -284,7 +284,7 @@ jobs:
       working-directory: build
       run: |
         cd test/RelWithDebInfo
-        lit -sv lit
+        lit -vv lit
         cd ../../
 
         ctest --output-on-failure --verbose -C RelWithDebInfo --exclude-regex ".*-lit"

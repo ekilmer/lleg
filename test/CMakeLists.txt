@@ -80,7 +80,7 @@ file(GENERATE
 # LIT is already parallelized, so there could be resource contention.
 add_test(
   NAME lleg_test-lit
-  COMMAND ${llvm_lit} ${LLVM_LIT_ARGS} lit
+  COMMAND ${llvm_lit} -vv lit
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
 )
 
