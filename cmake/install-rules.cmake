@@ -63,6 +63,12 @@ install(
 )
 
 install(
+    DIRECTORY cmake/modules/
+    DESTINATION "${lleg_INSTALL_CMAKEDIR}/modules"
+    COMPONENT lleg_Development
+)
+
+install(
     EXPORT llegTargets
     NAMESPACE lleg::
     DESTINATION "${lleg_INSTALL_CMAKEDIR}"

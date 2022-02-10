@@ -121,6 +121,8 @@ endif()
 
 # ---- Declare dependencies ----
 find_package(LLVM 13 CONFIG REQUIRED)
+# Fix LLVM targets that are missing helpful CMake properties
+include(cmake/modules/fix_llvm_interface_targets.cmake)
 # Some debug/info messages
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_CMAKE_DIR}")
