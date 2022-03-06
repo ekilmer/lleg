@@ -10,7 +10,6 @@ generator, like the Unix Makefiles one:
 ```sh
 cmake -S . -B build -D CMAKE_BUILD_TYPE=Release \
   -D CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake \
-  -D VCPKG_OVERLAY_PORTS=$(pwd)/ports \
   -D VCPKG_TARGET_TRIPLET="x64-<platform>-release"
 cmake --build build
 ```
@@ -23,7 +22,6 @@ generator, like the Visual Studio ones:
 ```sh
 cmake -S . -B build \
   -D CMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake \
-  -D VCPKG_OVERLAY_PORTS=$(pwd)/ports
 cmake --build build --config Release
 ```
 

@@ -257,10 +257,6 @@ jobs:
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
           "${{ secrets.GITHUB_TOKEN }}"
 
-        cd C:\a\vcpkg
-        vcpkg.exe install --debug --triplet x64-windows-release --overlay-ports=D:/a/lleg/lleg/ports "llvm[utils]"
-        cd D:\a\lleg\lleg
-
         cmake --preset=ci-${{ matrix.os }} `
           -DBUILD_SHARED_LIBS=${{ matrix.shared }} `
           -DVCPKG_INSTALL_OPTIONS=--debug

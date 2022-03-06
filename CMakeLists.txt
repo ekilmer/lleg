@@ -152,6 +152,8 @@ else()
     endif()
 endif()
 
+# Need to add this manually because we aren't actually linking against any LLVM
+# library which would normally carry these settings
 if (NOT WIN32)
     target_include_directories(
         lleg_llegPass SYSTEM
