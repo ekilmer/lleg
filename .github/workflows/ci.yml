@@ -40,8 +40,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-        submodules: recursive
+
+    - name: Setup vcpkg
+      run: |
+        echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> "${GITHUB_ENV}"
+        git -C "${VCPKG_INSTALLATION_ROOT}" stash
+        git -C "${VCPKG_INSTALLATION_ROOT}" pull
 
     - name: Install LCov
       run: sudo apt-get update -q
@@ -49,12 +53,10 @@ jobs:
 
     - name: Configure
       run: |
-        ./vcpkg/bootstrap-vcpkg.sh
-
         pipx install lit==13.0.0
 
         # Setup NuGet authentication
-        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
           sources add \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
@@ -62,7 +64,7 @@ jobs:
           -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}" || true
 
-        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
           sources update \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
@@ -70,7 +72,7 @@ jobs:
           -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}"
 
-        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
           setapikey \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           "${{ secrets.GITHUB_TOKEN }}"
@@ -99,18 +101,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-        submodules: recursive
+
+    - name: Setup vcpkg
+      run: |
+        echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> "${GITHUB_ENV}"
+        git -C "${VCPKG_INSTALLATION_ROOT}" stash
+        git -C "${VCPKG_INSTALLATION_ROOT}" pull
 
     - name: Configure
       env: { CXX: clang++, CC: clang }
       run: |
-        ./vcpkg/bootstrap-vcpkg.sh
-
         pipx install lit==13.0.0
 
         # Setup NuGet authentication
-        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
           sources add \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
@@ -118,7 +122,7 @@ jobs:
           -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}" || true
 
-        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
           sources update \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
@@ -126,7 +130,7 @@ jobs:
           -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}"
 
-        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
           setapikey \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           "${{ secrets.GITHUB_TOKEN }}"
@@ -177,8 +181,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-        submodules: recursive
+
+    - name: Setup vcpkg
+      shell: bash
+      run: |
+        echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> "${GITHUB_ENV}"
+        git -C "${VCPKG_INSTALLATION_ROOT}" stash
+        git -C "${VCPKG_INSTALLATION_ROOT}" pull
 
     - name: Install Dependencies
       run: pipx install lit==13.0.0
@@ -196,10 +205,8 @@ jobs:
     - name: Configure Unix
       if: "!startsWith(matrix.os, 'windows')"
       run: |
-        ./vcpkg/bootstrap-vcpkg.sh
-
         # Setup NuGet authentication
-        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
           sources add \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
@@ -207,7 +214,7 @@ jobs:
           -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}" || true
 
-        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
           sources update \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           -storepasswordincleartext \
@@ -215,7 +222,7 @@ jobs:
           -username "${{ github.repository_owner }}" \
           -password "${{ secrets.GITHUB_TOKEN }}"
 
-        mono "$(./vcpkg/vcpkg fetch nuget | tail -n 1)" \
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
           setapikey \
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
           "${{ secrets.GITHUB_TOKEN }}"
@@ -226,17 +233,9 @@ jobs:
 
     - name: Configure Windows
       if: startsWith(matrix.os, 'windows')
-      env:
-        VCPKG_ROOT: C:\\a\\vcpkg
       run: |
-        Get-PSDrive
-        # Copy vcpkg to C: drive where we have more space
-        mkdir C:\a
-        cp D:\a\${{ github.event.repository.name }}\${{ github.event.repository.name }}\vcpkg C:\a -Recurse
-        C:\a\vcpkg\bootstrap-vcpkg.bat
-
         # Setup NuGet authentication
-        & "$(C:\\a\\vcpkg\\vcpkg.exe fetch nuget | select -last 1)" `
+        & "$(vcpkg fetch nuget | select -last 1)" `
           sources add `
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
           -storepasswordincleartext `
@@ -244,7 +243,7 @@ jobs:
           -username "${{ github.repository_owner }}" `
           -password "${{ secrets.GITHUB_TOKEN }}" || true
 
-        & "$(C:\\a\\vcpkg\\vcpkg.exe fetch nuget | select -last 1)" `
+        & "$(vcpkg fetch nuget | select -last 1)" `
           sources update `
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
           -storepasswordincleartext `
@@ -252,7 +251,7 @@ jobs:
           -username "${{ github.repository_owner }}" `
           -password "${{ secrets.GITHUB_TOKEN }}"
 
-        & "$(C:\\a\\vcpkg\\vcpkg.exe fetch nuget | select -last 1)" `
+        & "$(vcpkg fetch nuget | select -last 1)" `
           setapikey `
           -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
           "${{ secrets.GITHUB_TOKEN }}"
@@ -260,8 +259,6 @@ jobs:
         cmake --preset=ci-${{ matrix.os }} `
           -DBUILD_SHARED_LIBS=${{ matrix.shared }} `
           -DVCPKG_INSTALL_OPTIONS=--debug
-
-        Get-PSDrive
 
     - name: Build
       run: cmake --build build --config RelWithDebInfo -j 2

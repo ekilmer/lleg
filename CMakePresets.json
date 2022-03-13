@@ -112,9 +112,6 @@
         "VCPKG_TARGET_TRIPLET": "x64-linux-release",
         "VCPKG_HOST_TRIPLET": "x64-linux-release"
       },
-      "environment": {
-        "VCPKG_ROOT": "${sourceDir}/vcpkg"
-      },
       "errors": {
         "dev": false,
         "deprecated": false
@@ -133,9 +130,6 @@
         "VCPKG_TARGET_TRIPLET": "x64-linux-release",
         "VCPKG_HOST_TRIPLET": "x64-linux-release"
       },
-      "environment": {
-        "VCPKG_ROOT": "${sourceDir}/vcpkg"
-      },
       "errors": {
         "dev": false,
         "deprecated": false
@@ -153,9 +147,6 @@
         "VCPKG_TARGET_TRIPLET": "x64-osx-release",
         "VCPKG_HOST_TRIPLET": "x64-osx-release"
       },
-      "environment": {
-        "VCPKG_ROOT": "${sourceDir}/vcpkg"
-      },
       "errors": {
         "dev": false,
         "deprecated": false
@@ -167,9 +158,6 @@
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-linux-release",
         "VCPKG_HOST_TRIPLET": "x64-linux-release"
-      },
-      "environment": {
-        "VCPKG_ROOT": "${sourceDir}/vcpkg"
       },
       "errors": {
         "dev": false,
