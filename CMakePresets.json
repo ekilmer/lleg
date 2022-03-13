@@ -105,34 +105,22 @@
     },
     {
       "name": "ci-coverage",
-      "inherits": ["coverage-unix", "dev-mode", "vcpkg"],
+      "inherits": ["coverage-unix", "dev-mode"],
       "cacheVariables": {
         "CMAKE_CXX_FLAGS_COVERAGE": "-DNDEBUG -Og -g --coverage -fkeep-inline-functions -fkeep-static-functions",
-        "COVERAGE_HTML_COMMAND": "",
-        "VCPKG_TARGET_TRIPLET": "x64-linux-release",
-        "VCPKG_HOST_TRIPLET": "x64-linux-release"
-      },
-      "errors": {
-        "dev": false,
-        "deprecated": false
+        "COVERAGE_HTML_COMMAND": ""
       }
     },
     {
       "name": "ci-sanitize",
       "binaryDir": "${sourceDir}/build/sanitize",
-      "inherits": ["ci-unix", "dev-mode", "vcpkg"],
+      "inherits": ["ci-unix", "dev-mode"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Sanitize",
         "CMAKE_CXX_FLAGS_SANITIZE": "-O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common",
         "CMAKE_EXE_LINKER_FLAGS_SANITIZE": "-fsanitize=address,undefined",
         "CMAKE_SHARED_LINKER_FLAGS_SANITIZE": "-fsanitize=address,undefined",
-        "CMAKE_MODULE_LINKER_FLAGS_SANITIZE": "-fsanitize=address,undefined",
-        "VCPKG_TARGET_TRIPLET": "x64-linux-release",
-        "VCPKG_HOST_TRIPLET": "x64-linux-release"
-      },
-      "errors": {
-        "dev": false,
-        "deprecated": false
+        "CMAKE_MODULE_LINKER_FLAGS_SANITIZE": "-fsanitize=address,undefined"
       }
     },
     {

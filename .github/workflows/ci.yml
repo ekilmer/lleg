@@ -2,6 +2,8 @@ name: Continuous Integration
 
 on:
   push:
+    branches:
+    - main
 
   pull_request:
     branches:
@@ -11,7 +13,6 @@ env:
   # "Source" is set in the vcpkg install step
   VCPKG_BINARY_SOURCES: 'clear;nuget,GitHub,readwrite;nugettimeout,3601'
   VCPKG_USE_NUGET_CACHE: 1
-
 
 jobs:
   lint:
@@ -41,43 +42,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Setup vcpkg
-      run: |
-        echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> "${GITHUB_ENV}"
-        git -C "${VCPKG_INSTALLATION_ROOT}" stash
-        git -C "${VCPKG_INSTALLATION_ROOT}" pull
-
-    - name: Install LCov
+    - name: Install LCov and Dependencies
       run: sudo apt-get update -q
         && sudo apt-get install lcov -q -y
+        && wget -O - https://apt.llvm.org/llvm.sh | sudo bash -s -- 13
+        && pipx install lit~=13.0
 
     - name: Configure
-      run: |
-        pipx install lit==13.0.0
-
-        # Setup NuGet authentication
-        mono "$(vcpkg fetch nuget | tail -n 1)" \
-          sources add \
-          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-          -storepasswordincleartext \
-          -name "GitHub" \
-          -username "${{ github.repository_owner }}" \
-          -password "${{ secrets.GITHUB_TOKEN }}" || true
-
-        mono "$(vcpkg fetch nuget | tail -n 1)" \
-          sources update \
-          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-          -storepasswordincleartext \
-          -name "GitHub" \
-          -username "${{ github.repository_owner }}" \
-          -password "${{ secrets.GITHUB_TOKEN }}"
-
-        mono "$(vcpkg fetch nuget | tail -n 1)" \
-          setapikey \
-          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-          "${{ secrets.GITHUB_TOKEN }}"
-
-        cmake --preset=ci-coverage -DVCPKG_INSTALL_OPTIONS=--debug
+      run: cmake --preset=ci-coverage
 
     - name: Build
       run: cmake --build build/coverage -j 2
@@ -102,40 +74,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Setup vcpkg
-      run: |
-        echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> "${GITHUB_ENV}"
-        git -C "${VCPKG_INSTALLATION_ROOT}" stash
-        git -C "${VCPKG_INSTALLATION_ROOT}" pull
+    - name: Install Dependencies
+      run: sudo apt-get update -q
+        && wget -O - https://apt.llvm.org/llvm.sh | sudo bash -s -- 13
+        && pipx install lit~=13.0
 
     - name: Configure
       env: { CXX: clang++, CC: clang }
-      run: |
-        pipx install lit==13.0.0
-
-        # Setup NuGet authentication
-        mono "$(vcpkg fetch nuget | tail -n 1)" \
-          sources add \
-          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-          -storepasswordincleartext \
-          -name "GitHub" \
-          -username "${{ github.repository_owner }}" \
-          -password "${{ secrets.GITHUB_TOKEN }}" || true
-
-        mono "$(vcpkg fetch nuget | tail -n 1)" \
-          sources update \
-          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-          -storepasswordincleartext \
-          -name "GitHub" \
-          -username "${{ github.repository_owner }}" \
-          -password "${{ secrets.GITHUB_TOKEN }}"
-
-        mono "$(vcpkg fetch nuget | tail -n 1)" \
-          setapikey \
-          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-          "${{ secrets.GITHUB_TOKEN }}"
-
-        cmake --preset=ci-sanitize -DVCPKG_INSTALL_OPTIONS=--debug
+      run: cmake --preset=ci-sanitize
 
     - name: Build
       run: cmake --build build/sanitize -j 2
