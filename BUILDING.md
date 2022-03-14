@@ -45,4 +45,25 @@ Here is the command for installing the release mode artifacts with a multi-confi
 cmake --install build --config Release
 ```
 
+### CMake package
+
+This project exports a CMake package to be used with the [`find_package`][2]
+command of CMake:
+
+* Package name: `lleg`
+* Target name: `lleg::lleg`
+
+Example usage:
+
+```cmake
+find_package(lleg REQUIRED)
+# Declare the imported target as a build requirement using PRIVATE, where
+# project_target is a target created in the consuming project
+target_link_libraries(
+    project_target PRIVATE
+    lleg::lleg
+)
+```
+
 [1]: https://cmake.org/cmake/help/latest/manual/cmake.1.html#install-a-project
+[2]: https://cmake.org/cmake/help/latest/command/find_package.html
