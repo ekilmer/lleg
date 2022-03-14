@@ -7,7 +7,10 @@
 # 'llvm/cmake/modules/AddLLVM.cmake' file to the targets that LLVM builds, but
 # alas here we are
 
-get_property(_already_fixed GLOBAL PROPERTY FIXED_LLVM_LIBRARY_TARGET_INTERFACES DEFINED)
+# We use a DIRECTORY scope for the flag here because that's the same scope as
+# IMPORTED targets brought in by `find_package`
+# (https://cmake.org/cmake/help/latest/manual/cmake-buildsystem.7.html#imported-targets)
+get_property(_already_fixed DIRECTORY PROPERTY FIXED_LLVM_LIBRARY_TARGET_INTERFACES DEFINED)
 
 if(NOT _already_fixed)
   if(NOT DEFINED LLVM_AVAILABLE_LIBS)
@@ -46,7 +49,7 @@ if(NOT _already_fixed)
 
       message(STATUS "Fixed LLVM library target interface properties")
       define_property(
-          GLOBAL PROPERTY FIXED_LLVM_LIBRARY_TARGET_INTERFACES
+          DIRECTORY PROPERTY FIXED_LLVM_LIBRARY_TARGET_INTERFACES
           BRIEF_DOCS "Flag to determine if we've already fixed LLVM library target interfaces"
           FULL_DOCS "Flag to determine if we've already fixed LLVM library target interfaces"
       )
