@@ -13,20 +13,19 @@ if(NOT _already_fixed)
   if(NOT DEFINED LLVM_AVAILABLE_LIBS)
       message(WARNING "Call to fix LLVM library target interfaces, but can't find list of libraries")
   else()
-      set(_did_fix FALSE)
-      # Fix each library. Assume these are CMake targets
+      # Fix each library target.
       foreach(_llvm_lib ${LLVM_AVAILABLE_LIBS})
           # Interface include
-          get_target_property(_existing_interface_include ${_llvm_lib} INTERFACE_INCLUDE_DIRECTORIES)
-          if(NOT _existing_interface_include)
-              set_target_properties(${_llvm_lib} PROPERTIES
-                  INTERFACE_INCLUDE_DIRECTORIES ${LLVM_INCLUDE_DIRS}
-              )
-              set(_did_fix TRUE)
-          endif()
-          unset(_existing_interface_include)
+          set_target_properties(${_llvm_lib} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${LLVM_INCLUDE_DIRS})
 
-          # Compile options. Exceptions and RTTI
+          # LLVM Definitions
+          string (REPLACE "-D" "" _llvm_defs "${LLVM_DEFINITIONS}")
+          string (REPLACE " " ";" _llvm_defs "${_llvm_defs}")
+          foreach(_llvm_def ${_llvm_defs})
+              set_property(TARGET ${_llvm_lib} APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS ${_llvm_def})
+          endforeach()
+
+          # Standard compile options for Exceptions and RTTI
           if(NOT LLVM_ENABLE_EH)
               if(MSVC)
                   set_property(TARGET ${_llvm_lib} APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS _HAS_EXCEPTIONS=0)
@@ -34,24 +33,18 @@ if(NOT _already_fixed)
               else()
                   set_property(TARGET ${_llvm_lib} APPEND PROPERTY INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>")
               endif()
-              set(_did_fix TRUE)
           endif()
           if(NOT LLVM_ENABLE_RTTI)
               if(MSVC)
-                  set_property(TARGET ${_llvm_lib} APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS _HAS_EXCEPTIONS=0)
                   set_property(TARGET ${_llvm_lib} APPEND PROPERTY INTERFACE_COMPILE_OPTIONS /GR-)
               else()
                   set_property(TARGET ${_llvm_lib} APPEND PROPERTY INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>")
               endif()
-              set(_did_fix TRUE)
           endif()
       endforeach()
       unset(_llvm_lib)
 
-      if(_did_fix)
-          message(STATUS "Fixed LLVM library target interface properties")
-      endif()
-      unset(_did_fix)
+      message(STATUS "Fixed LLVM library target interface properties")
       define_property(
           GLOBAL PROPERTY FIXED_LLVM_LIBRARY_TARGET_INTERFACES
           BRIEF_DOCS "Flag to determine if we've already fixed LLVM library target interfaces"
