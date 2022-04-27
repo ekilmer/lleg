@@ -1,16 +1,23 @@
-/**
- * Copied from
- * https://github.com/banach-space/llvm-tutor/blob/90be75044070b6ae70d01c783504e763693cbdbe/include/StaticCallCounter.h
- *
- * DESCRIPTION:
- *  Declares the StaticCallCounter Passes
- *      * new pass manager interface
- *      * legacy pass manager interface
- *      * printer pass for the new pass manager
- *
- * License: MIT
- */
-#pragma once
+//===- lleg/lleg.hpp - LLEG main header -------------------------*- C++ -*-===//
+//
+// Copied originally from
+// https://github.com/banach-space/llvm-tutor/blob/90be75044070b6ae70d01c783504e763693cbdbe/include/StaticCallCounter.h
+// SPDX-License-Identifier: MIT
+//
+//===----------------------------------------------------------------------===//
+///
+/// \file lleg.hpp
+/// \brief Declares the StaticCallCounter Passes
+///
+/// The implementation includes:
+///     * new pass manager interface
+///     * legacy pass manager interface
+///     * printer pass for the new pass manager
+///
+//===----------------------------------------------------------------------===//
+
+#ifndef LLEG_LLEG_HPP
+#define LLEG_LLEG_HPP
 
 #include "lleg/lleg_export.hpp"
 #include "llvm/ADT/MapVector.h"
@@ -21,65 +28,29 @@
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
 
-/**
- * A note about the MSVC warning C4251:
- * This warning should be suppressed for private data members of the project's
- * exported classes, because there are too many ways to work around it and all
- * involve some kind of trade-off (increased code complexity requiring more
- * developer time, writing boilerplate code, longer compile times), but those
- * solutions are very situational and solve things in slightly different ways,
- * depending on the requirements of the project.
- * That is to say, there is no general solution.
- *
- * What can be done instead is understand where issues could arise where this
- * warning is spotting a legitimate bug. I will give the general description of
- * this warning's cause and break it down to make it trivial to understand.
- *
- * C4251 is emitted when an exported class has a non-static data member of a
- * non-exported class type.
- *
- * The exported class in our case is the class below (exported_class), which
- * has a non-static data member (m_name) of a non-exported class type
- * (std::string).
- *
- * The rationale here is that the user of the exported class could attempt to
- * access (directly, or via an inline member function) a static data member or
- * a non-inline member function of the data member, resulting in a linker
- * error.
- * Inline member function above means member functions that are defined (not
- * declared) in the class definition.
- *
- * Since this exported class never makes these non-exported types available to
- * the user, we can safely ignore this warning. It's fine if there are
- * non-exported class types as private member variables, because they are only
- * accessed by the members of the exported class itself.
- *
- * The name() method below returns a pointer to the stored null-terminated
- * string as a fundamental type (const char), so this is safe to use anywhere.
- * The only downside is that you can have dangling pointers if the pointer
- * outlives the class instance which stored the string.
- *
- * Shared libraries are not easy, they need some discipline to get right, but
- * they also solve some other problems that make them worth the time invested.
- */
+namespace lleg {
 
-//------------------------------------------------------------------------------
+//===-----------------------------------------------------------------------===/
 // New PM interface
-//------------------------------------------------------------------------------
-using ResultStaticCC = llvm::MapVector<const llvm::Function*, unsigned>;
+//===-----------------------------------------------------------------------===/
 
+/// ResultStaticCC - Mapping of function to number of calls in that function.
+using ResultStaticCC = llvm::MapVector<const llvm::Function *, unsigned>;
+
+//===----------------------------------------------------------------------===//
+/// New LLVM Pass Manager interface for counting calls in a module.
+///
 struct LLEG_EXPORT StaticCallCounter
-    : public llvm::AnalysisInfoMixin<StaticCallCounter>
-{
+    : public llvm::AnalysisInfoMixin<StaticCallCounter> {
+  /// Result of our pass.
   using Result = ResultStaticCC;
-  auto run(llvm::Module& M, llvm::ModuleAnalysisManager& /*unused*/) -> Result;
-  auto runOnModule(llvm::Module& M) -> Result;
-  // Part of the official API:
-  //  https://llvm.org/docs/WritingAnLLVMNewPMPass.html#required-passes
-  static auto isRequired() -> bool
-  {
-    return true;
-  }
+  /// Run our call counter pass on the module.
+  Result run(llvm::Module &M, llvm::ModuleAnalysisManager & /*unused*/);
+  /// Run our call counter pass on the module.
+  Result runOnModule(llvm::Module &M);
+  /// Part of the official API:
+  /// https://llvm.org/docs/WritingAnLLVMNewPMPass.html#required-passes
+  static bool isRequired() { return true; }
 
 private:
   // A special type used by analysis passes to provide an address that
@@ -88,59 +59,63 @@ private:
   friend struct llvm::AnalysisInfoMixin<StaticCallCounter>;
 };
 
-//------------------------------------------------------------------------------
-// New PM interface for the printer pass
-//------------------------------------------------------------------------------
+//===----------------------------------------------------------------------===//
+/// New LLVM Pass Manager interface for the printer pass for our call counter.
+///
 class LLEG_EXPORT StaticCallCounterPrinter
-    : public llvm::PassInfoMixin<StaticCallCounterPrinter>
-{
+    : public llvm::PassInfoMixin<StaticCallCounterPrinter> {
 public:
-  explicit StaticCallCounterPrinter(llvm::raw_ostream& OutS)
-      : OS(OutS)
-  {
-  }
-  auto run(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
-      -> llvm::PreservedAnalyses;
-  // Part of the official API:
-  //  https://llvm.org/docs/WritingAnLLVMNewPMPass.html#required-passes
-  static auto isRequired() -> bool
-  {
-    return true;
-  }
+  /// Constructor takes output stream for where to print results.
+  explicit StaticCallCounterPrinter(llvm::raw_ostream &OutS) : OS(OutS) {}
+  /// Runs the print pass on the module.
+  llvm::PreservedAnalyses run(llvm::Module &M,
+                              llvm::ModuleAnalysisManager &MAM);
+  /// Part of the official API:
+  /// https://llvm.org/docs/WritingAnLLVMNewPMPass.html#required-passes
+  static bool isRequired() { return true; }
 
 private:
-  llvm::raw_ostream& OS;
+  llvm::raw_ostream &OS;
 };
 
-LLEG_EXPORT auto getStaticCallCounterPluginInfo()
-    -> llvm::PassPluginLibraryInfo;
+/// Return the plugin info for the call counter pass.
+LLEG_EXPORT llvm::PassPluginLibraryInfo getStaticCallCounterPluginInfo();
 
 // Windows has no concept of weak symbols
 #ifndef _WIN32
-extern "C" LLVM_ATTRIBUTE_WEAK LLEG_EXPORT auto llvmGetPassPluginInfo()
-    -> llvm::PassPluginLibraryInfo
-{
-  return getStaticCallCounterPluginInfo();
-}
-#endif  // _WIN32
+/// Return the plugin info for this call counter pass.
+extern "C" LLVM_ATTRIBUTE_WEAK LLEG_EXPORT llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo();
+#endif // _WIN32
 
-//------------------------------------------------------------------------------
+//===----------------------------------------------------------------------===//
 // Legacy PM interface
-//------------------------------------------------------------------------------
-struct LLEG_EXPORT LegacyStaticCallCounter : public llvm::ModulePass
-{
-  static char ID;
-  LegacyStaticCallCounter()
-      : llvm::ModulePass(ID)
-  {
-  }
-  auto runOnModule(llvm::Module& M) -> bool override;
-  // The print method must be implemented by Legacy analysis passes in order to
-  // print a human readable version of the analysis results:
-  //    http://llvm.org/docs/WritingAnLLVMPass.html#the-print-method
-  void print(llvm::raw_ostream& OutS,
-             llvm::Module const* /*unused*/) const override;
+//===----------------------------------------------------------------------===//
 
+//===----------------------------------------------------------------------===//
+/// Legacy LLVM Pass Manager Interface for counting calls in all functions in
+/// the module.
+///
+struct LLEG_EXPORT LegacyStaticCallCounter : public llvm::ModulePass {
+  /// ID of the pass.
+  static char ID;
+  LegacyStaticCallCounter() : llvm::ModulePass(ID) {}
+
+  /// Runs the call counter pass on the module.
+  bool runOnModule(llvm::Module &M) override;
+
+  /// The print method must be implemented by Legacy analysis passes in order to
+  /// print a human-readable version of the analysis results:
+  /// http://llvm.org/docs/WritingAnLLVMPass.html#the-print-method
+  void print(llvm::raw_ostream &OutS,
+             llvm::Module const * /*unused*/) const override;
+
+  /// Holds our results for calls in each function.
   ResultStaticCC DirectCalls;
+  /// Implementation object for our pass logic.
   StaticCallCounter Impl;
 };
+
+} // namespace lleg
+
+#endif // LLEG_LLEG_HPP

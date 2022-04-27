@@ -29,28 +29,27 @@
 //===----------------------------------------------------------------------===//
 // Command line options
 //===----------------------------------------------------------------------===//
-static llvm::cl::OptionCategory CallCounterCategory {"call counter options"};
+static llvm::cl::OptionCategory CallCounterCategory{"call counter options"};
 
-static llvm::cl::opt<std::string> InputModule {
+static llvm::cl::opt<std::string> InputModule{
     llvm::cl::Positional,
-    llvm::cl::desc {"<Module to analyze>"},
-    llvm::cl::value_desc {"bitcode filename"},
+    llvm::cl::desc{"<Module to analyze>"},
+    llvm::cl::value_desc{"bitcode filename"},
     llvm::cl::init(""),
     llvm::cl::Required,
-    llvm::cl::cat {CallCounterCategory}};
+    llvm::cl::cat{CallCounterCategory}};
 
 //===----------------------------------------------------------------------===//
 // static - implementation
 //===----------------------------------------------------------------------===//
-static void countStaticCalls(llvm::Module& M)
-{
+static void countStaticCalls(llvm::Module &M) {
   // Create a module pass manager and add StaticCallCounterPrinter to it.
   llvm::ModulePassManager MPM;
-  MPM.addPass(StaticCallCounterPrinter(llvm::errs()));
+  MPM.addPass(lleg::StaticCallCounterPrinter(llvm::errs()));
 
   // Create an analysis manager and register StaticCallCounter with it.
   llvm::ModuleAnalysisManager MAM;
-  MAM.registerPass([&] { return StaticCallCounter(); });
+  MAM.registerPass([&] { return lleg::StaticCallCounter(); });
 
   // Register all available module analysis passes defined in PassRegisty.def.
   // We only really need PassInstrumentationAnalysis (which is pulled by
@@ -66,13 +65,11 @@ static void countStaticCalls(llvm::Module& M)
 //===----------------------------------------------------------------------===//
 // Main driver code.
 //===----------------------------------------------------------------------===//
-int main(int Argc, char** Argv)
-{
+int main(int Argc, char **Argv) {
   // Hide all options apart from the ones specific to this tool
   llvm::cl::HideUnrelatedOptions(CallCounterCategory);
 
-  llvm::cl::ParseCommandLineOptions(Argc,
-                                    Argv,
+  llvm::cl::ParseCommandLineOptions(Argc, Argv,
                                     "Counts the number of static function "
                                     "calls in the input IR file\n");
 
