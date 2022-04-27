@@ -1,0 +1,15 @@
+{
+  "name": "lleg",
+  "version-semver": "0.1.0",
+  "dependencies": [
+    {
+      "name": "llvm",
+      "version>=": "13.0.0#3",
+      "default-features": true,
+      "features": [
+        "utils"
+      ]
+    }
+  ],
+  "builtin-baseline": "af2287382b1991dbdcb7e5112d236f3323b9dd7a"
+}

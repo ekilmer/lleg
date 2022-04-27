@@ -1,0 +1,18 @@
+@site_cfg_in_header@
+
+import sys
+
+config.llvm_tools_dir = "@LLVM_BINARY_DIR@/@LLVM_TOOLS_INSTALL_DIR@"
+
+config.lleg_tool_test_exe = "@tool_test_exe@"
+config.lleg_pass_lib = "@pass_lib@"
+
+import lit.llvm
+# lit_config is a global instance of LitConfig
+lit.llvm.initialize(lit_config, config)
+
+# test_exec_root: The root path where tests should be run.
+config.test_exec_root = os.path.join("@CMAKE_CURRENT_BINARY_DIR@")
+
+# Let the main config do the real work.
+lit_config.load_config(config, "@CMAKE_CURRENT_SOURCE_DIR@/lit.cfg.py")

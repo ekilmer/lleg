@@ -3,11 +3,16 @@ name: Continuous Integration
 on:
   push:
     branches:
-    - master
+    - main
 
   pull_request:
     branches:
-    - master
+    - main
+
+env:
+  # "Source" is set in the vcpkg install step
+  VCPKG_BINARY_SOURCES: 'clear;nuget,GitHub,readwrite;nugettimeout,3601'
+  VCPKG_USE_NUGET_CACHE: 1
 
 jobs:
   lint:
@@ -23,7 +28,7 @@ jobs:
       run: pip3 install codespell
 
     - name: Lint
-      run: cmake -D FORMAT_COMMAND=clang-format-11 -P cmake/lint.cmake
+      run: cmake -DFORMAT_COMMAND=clang-format-12 -P cmake/lint.cmake
 
     - name: Spell check
       if: always()
@@ -34,19 +39,14 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # To enable coverage, delete the last line from the conditional below and
-    # edit the "<name>" placeholder to your GitHub name.
-    # If you do not wish to use codecov, then simply delete this job from the
-    # workflow.
-    if: github.repository_owner == '<name>'
-      && false
-
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install LCov
+    - name: Install LCov and Dependencies
       run: sudo apt-get update -q
         && sudo apt-get install lcov -q -y
+        && wget -O - https://apt.llvm.org/llvm.sh | sudo bash -s -- 13
+        && pipx install lit~=13.0
 
     - name: Configure
       run: cmake --preset=ci-coverage
@@ -56,13 +56,13 @@ jobs:
 
     - name: Test
       working-directory: build/coverage
-      run: ctest --output-on-failure -j 2
+      run: ctest --output-on-failure
 
     - name: Process coverage info
       run: cmake --build build/coverage -t coverage
 
     - name: Submit to codecov.io
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         file: build/coverage/coverage.info
 
@@ -74,8 +74,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install Dependencies
+      run: sudo apt-get update -q
+        && wget -O - https://apt.llvm.org/llvm.sh | sudo bash -s -- 13
+        && pipx install lit~=13.0
+
     - name: Configure
-      env: { CXX: clang++-11 }
+      env: { CXX: clang++, CC: clang }
       run: cmake --preset=ci-sanitize
 
     - name: Build
@@ -90,14 +95,15 @@ jobs:
           strict_init_order=1:\
           detect_leaks=1"
         UBSAN_OPTIONS: print_stacktrace=1
-      run: ctest --output-on-failure -j 2
+      run: ctest --output-on-failure
 
   test:
     needs: [lint]
 
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos, ubuntu, windows]
+        os: [macos-11, ubuntu-20.04, windows-2022]
 
         type: [shared, static]
 
@@ -105,28 +111,122 @@ jobs:
         - { type: shared, shared: YES }
         - { type: static, shared: NO }
 
-    runs-on: ${{ matrix.os }}-latest
+          # For vcpkg host triplet env variable
+        - { os: macos-11, os_name: osx }
+        - { os: ubuntu-20.04, os_name: linux }
+        - { os: windows-2022, os_name: windows }
+        exclude:
+        # LLVM does not support dynamic linking on Windows. This might change
+        # if LLVM_BUILD_LLVM_DYLIB option is ever supported on Windows
+        - { os: windows-2022, type: shared }
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      VCPKG_HOST_TRIPLET: "x64-${{ matrix.os_name }}-release"
 
     steps:
     - uses: actions/checkout@v2
 
+    - name: Setup vcpkg
+      shell: bash
+      run: |
+        echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> "${GITHUB_ENV}"
+        git -C "${VCPKG_INSTALLATION_ROOT}" stash
+        git -C "${VCPKG_INSTALLATION_ROOT}" pull
+
+    - name: Install Dependencies
+      run: pipx install lit==13.0.0
+
     - name: Install static analyzers
-      if: matrix.os == 'ubuntu'
+      if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt-get install clang-tidy cppcheck -y -q
 
-    - name: Configure
-      run: cmake --preset=ci-${{ matrix.os }}
-        -D BUILD_SHARED_LIBS=${{ matrix.shared }}
+    - name: Setup Visual Studio 64 bit
+      if: startsWith(matrix.os, 'windows')
+      uses: ilammy/msvc-dev-cmd@v1.10.0
+      with:
+        arch: x64
+
+    - name: Configure Unix
+      if: "!startsWith(matrix.os, 'windows')"
+      run: |
+        # Setup NuGet authentication
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
+          sources add \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "${{ github.repository_owner }}" \
+          -password "${{ secrets.GITHUB_TOKEN }}" || true
+
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
+          sources update \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "${{ github.repository_owner }}" \
+          -password "${{ secrets.GITHUB_TOKEN }}"
+
+        mono "$(vcpkg fetch nuget | tail -n 1)" \
+          setapikey \
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+          "${{ secrets.GITHUB_TOKEN }}"
+
+        cmake --preset=ci-${{ matrix.os }} \
+          -DBUILD_SHARED_LIBS=${{ matrix.shared }} \
+          -DVCPKG_INSTALL_OPTIONS=--debug
+
+    - name: Configure Windows
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        # Setup NuGet authentication
+        & "$(vcpkg fetch nuget | select -last 1)" `
+          sources add `
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
+          -storepasswordincleartext `
+          -name "GitHub" `
+          -username "${{ github.repository_owner }}" `
+          -password "${{ secrets.GITHUB_TOKEN }}" || true
+
+        & "$(vcpkg fetch nuget | select -last 1)" `
+          sources update `
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
+          -storepasswordincleartext `
+          -name "GitHub" `
+          -username "${{ github.repository_owner }}" `
+          -password "${{ secrets.GITHUB_TOKEN }}"
+
+        & "$(vcpkg fetch nuget | select -last 1)" `
+          setapikey `
+          -source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" `
+          "${{ secrets.GITHUB_TOKEN }}"
+
+        cmake --preset=ci-${{ matrix.os }} `
+          -DBUILD_SHARED_LIBS=${{ matrix.shared }} `
+          -DVCPKG_INSTALL_OPTIONS=--debug
 
     - name: Build
-      run: cmake --build build --config Release -j 2
+      run: cmake --build build --config RelWithDebInfo -j 2
 
     - name: Install
-      run: cmake --install build --config Release --prefix prefix
+      run: cmake --install build --config RelWithDebInfo --prefix prefix
 
-    - name: Test
+    - name: Test Unix
+      if: "!startsWith(matrix.os, 'windows')"
       working-directory: build
-      run: ctest --output-on-failure -C Release -j 2
+      run: ctest --output-on-failure --verbose -C RelWithDebInfo
+
+      # Getting weird segfaults on Windows with CTest and lit that I can't reproduce locally
+    - name: Test Windows
+      if: startsWith(matrix.os, 'windows')
+      working-directory: build
+      run: |
+        cd test/RelWithDebInfo
+        lit -vv lit
+        cd ../../
+
+        ctest --output-on-failure --verbose -C RelWithDebInfo --exclude-regex ".*-lit"
 
   docs:
     # Deploy docs only when builds succeed
@@ -145,9 +245,9 @@ jobs:
     # this comment and the last line in the conditional below.
     # If you do not wish to use GitHub Pages for deploying documentation, then
     # simply delete this job similarly to the coverage one.
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
       && github.event_name == 'push'
-      && github.repository_owner == '<name>'
+      && github.repository_owner == 'ekilmer'
       && false
 
     steps:
@@ -164,8 +264,8 @@ jobs:
         && sudo apt-get install doxygen -q -y
 
     - name: Build docs
-      run: cmake -B build -D "CMAKE_PROJECT_INCLUDE=$PWD/cmake/docs.cmake"
-        && cmake --build build --target docs
+      run: cmake "-DPROJECT_SOURCE_DIR=$PWD" "-DPROJECT_BINARY_DIR=$PWD/build"
+        -P cmake/docs-ci.cmake
 
     - name: Deploy docs
       uses: peaceiris/actions-gh-pages@v3
